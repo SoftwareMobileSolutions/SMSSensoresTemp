@@ -1,0 +1,393 @@
+﻿@{
+    Layout = null;
+    string guid = System.Guid.NewGuid().ToString().Replace("-", "");
+}
+
+<div class="title">
+    <label class="titlelabel"></label>
+</div>
+<style id="tmp_imgchange" type="text/css">
+
+</style>
+<style type="text/css">
+    body {
+        background-color: aliceblue;
+    }
+    .titlelabel {
+        background: #FFFFFF;
+        border-radius: 5px;
+        padding: 10px;
+        width: 97%;
+    }
+    .title{
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        font-size: 1.3em;
+        top: 0.8em;
+    }
+
+    #imgTemp, #chartTemperatura_div {
+        width: 97%;
+        height: auto;
+        border-radius: 12px;
+        background-color: white;
+    }
+    #chartTemperatura_div {
+        width: 100%;
+    }
+    .sensores {
+        /*  background-color: #C62828; */
+        color: #ffffff;
+        height: 30px;
+        width: 30px;
+        border-radius: 15px;
+        -webkit-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
+        -moz-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
+        box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
+        position: relative;
+        z-index: 9999;
+    }
+
+        .sensores label {
+            font-weight: 600;
+        }
+
+        .sensores h1 {
+            font-size: 18px;
+            position: relative;
+            text-align: center;
+            top: 5px;
+            font-family: sans-serif;
+        }
+
+        .sensores div {
+            z-index: 1000;
+            color: #000;
+            /* background-size: 80px 160px; */
+            position: absolute;
+            top: 30px;
+            text-align: center;
+            width: 100%;
+   
+           /* left: -5px;*/
+            background: rgba(255, 255, 0, 0.5);
+            padding: 2px;
+            /* word-wrap: normal; */
+            white-space: nowrap;
+            border-radius: 4px;
+            /* width: 150px; */
+            height: 20px;
+            bottom: 15px;
+            /* font-size: 10px; */
+            /* height: 10px; */
+            /* border-color: #000000; */
+            text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+            /* border: 1px #000000 solid; */
+        }
+
+    #SensoresVarios {
+        position: absolute;
+    }
+
+    .sensores div > label {
+        position: relative;
+        bottom: 3px;
+        font-weight: 700;
+    }
+
+    #areaimagen{
+        text-align: center;
+    }
+</style>
+<div id="SensoresVarios"></div>
+<div id="areaimagen">
+   <img id="imgTemp" src="" />
+</div>
+<div id="chartTemperatura_div">
+    <div id="chartTemperatura">
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    $.extend({ 
+        RpExcesoVelocidad@{@guid}: {
+            sensorColor : ["8bc34a", "3f51b5", "d32f2f", "a04343", "00bcd4", "9c27b0", "009688", "03a9f4", "607d8b"],
+            imgBgId: "tmp_imgchange",
+            areaImg: "areaimagen",
+            imgTemp: "imgTemp",
+            sSensores: "SensoresVarios",
+            areasNombre: "",
+            //
+          
+            data: {
+                BD: 0,
+                companyid: 0,
+                userid: 0,
+                mobileid: 0
+            },
+            init: function() {
+                var _this = this;
+                _this.setUrlParam();
+                _this.getData();
+
+            },
+            getUrlparam: function getUrlParameter(sParam) {
+                var sPageURL = window.location.search.substring(1),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                    }
+                }
+                return false;
+            },
+            setUrlParam: function () {
+                var _this = this;
+
+                _this.data.BD = parseInt(_this.getUrlparam("BD"));
+                _this.data.companyid = parseInt(_this.getUrlparam("companyid"));
+                _this.data.userid = parseInt(_this.getUrlparam("userid"));
+                _this.data.mobileid = parseInt(_this.getUrlparam("mobileid"));
+
+                _this.data.BD = isNaN(_this.data.BD) ? 0 : _this.data.BD;
+                _this.data.companyid = isNaN(_this.data.companyid) ? 0 : _this.data.companyid;
+                _this.data.userid = isNaN(_this.data.userid) ? 0 : _this.data.userid;
+                _this.data.mobileid = isNaN(_this.data.mobileid) ? 0 : _this.data.mobileid;
+            },
+            getData: function() {
+                var _this = this;
+                $.get("../publicTemperaturaInfo/getConfiguracionAreaImg", _this.data, function (d) {
+                   // console.log(d["areas"])
+                   
+                    if (typeof d["areas"] !== "undefined") {
+                        d["areas"][0]["img"] = "data:image/png;base64," + d["areas"][0]["img"];
+                        _this.ubicarImg(d["areas"][0]["img"]);
+                        $(".title > label").eq(0).text("Sensores de Temperatura (" + d["areas"][0]["nombrearea"] + ")");
+                        _this.areasNombre = d["areas"][0]["nombrearea"];
+                        _this.chart.areasNombre = d["areas"][0]["nombrearea"];
+                        _this.chart.sensoresTemp = d["sensores"][0];
+                        _this.chart.coord = d["coord"];
+                    }
+                    if (typeof d["coord"] !== "undefined" && typeof d["sensores"] !== "undefined") {
+                        _this.sensorDiv(d["coord"], d["sensores"][0]);
+                    }
+                    _this.chart.init();
+
+                });
+            },
+            ubicarImg: function(imgb64) {
+                var _this = this;
+                //$("#" + _this.areaImg).attr("src", imgb64);
+                var strcss = 
+                `
+                    #${_this.areaImg} {
+                        height: 0; 
+                        width:100%;
+                        padding-bottom:100%;
+                        /*background-color: #2e3643;*/
+                        margin: 0;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-size: cover;
+                    }
+                `;
+                $("#" + _this.imgBgId).html(strcss);
+                $("#" + _this.imgTemp).attr("src", imgb64);
+            },
+            
+            sensorDiv: function(sensorData, sensorValues) {
+                //console.log(sensorValues);
+                var _this = this;
+                var DivSensors = "";
+                var idsSensor_ = [];
+                var x_ = [];
+                var y_ = [];
+
+                $("#" + _this.sSensores).html("");
+                for (var i = 0, len = sensorData.length; i < len; i++) {
+                    var s = sensorData[i];
+                    var idSensor = `sensor_${s.mobileid}_${s.sensor}`;
+                    var sensorLabelValue = sensorValues["s" + (i + 1)];
+                    var color = _this.sensorColor[i];
+                    
+                    DivSensors+=
+                    `<div id="${idSensor}" class="sensores" style="background-color:#${color};">
+                        <h1>${s.sensor}</h1>
+                        <div align="center">
+                            <label>${sensorLabelValue}°C</label>
+                        </div>
+                    </div>`;
+                    //appendTo("#" + );
+                    idsSensor_.push(idSensor);
+                    x_.push(s.x);
+                    y_.push(s.y);
+                   // _this.setPorcentainSensor(idSensor, s.x, s.y);
+                }
+               $("#" + _this.sSensores).html(DivSensors);
+                _this.setPorcentainSensor(idsSensor_, x_, y_);
+              // $("#SensoresVarios").html(DivSensors);
+            },
+            setPorcentainSensor: function(idSensor, x, y) {
+                //console.log($("#" + idSensor));
+               // console.log(idSensor, x, y);
+                var _this = this;
+                var obj = $("#" + _this.imgTemp);
+                var sensor = $("#" + idSensor);
+              //  var menuH = $("#MenuUl").height();
+
+
+                
+
+
+                setTimeout(function() {
+                    //console.log(obj.height());
+                var arew = $("#" + _this.areaImg).width();
+                var imgh = $("#" + _this.imgTemp).height();
+                var topsum = parseInt(((arew - imgh) / 2));
+
+                    var imgW = obj.width();
+                    var imgH = obj.height();
+                    //console.log(imgW, imgH);
+
+                    for (var i = 0, len = idSensor.length; i < len; i++) {
+                        var sensor = $("#" + idSensor[i]);
+
+                        var pixelsX = (x[i] * imgW) / 100;
+                        sensor.css({ "left": pixelsX + "px" });
+
+                        var pixelsY = ((y[i] * imgH) / 100);
+                        sensor.css({ "top": pixelsY + "px" });
+                    }
+
+                    
+                    $("#" + _this.imgTemp).css({ "top": topsum + "px", "position" : "relative" });
+                   // var topsum = parseInt(( / 2).toFixed(0));
+
+                   // $("#" + _this.imgTemp).css({ "top": topsum + "px" });
+
+                }, 100)
+                
+            },
+
+            chart: {
+                idChart: "chartTemperatura",
+                sensoresTemp: [],
+                coord: [],
+                areasNombre: "",
+                init: function() { 
+                    var _this = this;
+                        console.log(_this.sensoresTemp, _this.coord);
+                  
+                        var cat = [];
+                        var data = [];
+                        for (var i = 0, len = _this.coord.length; i < len; i++) {
+                            cat.push("Sensor " + _this.coord[i]["sensor"]);
+                            data.push(_this.sensoresTemp["s" + (i+1)]);
+                        }
+
+                       // console.log(data);
+
+                    Highcharts.chart(_this.idChart, {
+                        chart: {
+                        type: 'column'
+                        },
+
+                        title: {
+                            style: {
+                                fontSize: '1.8em'
+                            },
+                            text: 'Gráfico de Sensores de temperatura (' + _this.areasNombre + ")",
+                            useHtml: true,
+                            align: "center"
+                        },
+                        subtitle: {
+                            text: ""
+                        },
+                        xAxis: {
+                       
+                            categories: cat,
+                            type: 'category',
+                            labels: {
+                               // rotation: -45,
+                                style: {
+                                    fontSize: '1.5em',
+                                    fontFamily: 'Verdana, sans-serif'
+                                },
+                            }
+                           /* title: {
+                                text: null
+                            },
+                            gridLineWidth: 1,
+                            lineWidth: 0*/
+                        },
+                        yAxis: {
+                            gridLineWidth: 1,
+                            min: 0,
+                            title: {
+                                text: 'Grados Celsius (°C)',
+                                style: {
+                                    fontSize: '1.5em'
+                                }
+                            },
+                            labels: {
+                                style: {
+                                    fontSize: '1.5em',
+                                    fontFamily: 'Verdana, sans-serif'
+                                }
+                            },
+                        },
+                        tooltip: {
+                            enabled: false,
+                           /* headerFormat: '<span style="font-size: 0.8em">{point.key}</span><br/>',
+                            style: {
+                                fontSize: '1em'
+                         } */
+                        },
+                        plotOptions: {
+                            column: {
+                                //borderRadius: '50%',
+                                dataLabels: {
+                                    enabled: true
+                                },
+                                groupPadding: 0.1
+                            }, 
+                            series: {
+                                dataLabels: {
+                                    enabled: true,
+                                    style: {
+                                        fontWeight: 'bold',
+                                    fontSize: '1.5em'
+                                    }
+                                }
+                            }
+                        },
+                        legend: {
+                            enabled: false
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        series: [{
+                            name: 'Sensores',
+                            data: data
+                        }]
+                    });
+                }
+            }
+
+        }
+    });
+
+    $.RpExcesoVelocidad@{@guid}.init();
+</script>
+<script type="text/javascript">
+   
+
+</script>
