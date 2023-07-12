@@ -16,6 +16,7 @@
         }
         public class temp_sensors
         {
+            public string placa { set; get; }
             public string dategps { set; get; }
             public float s1 { set; get; }
             public float s2 { set; get; }
