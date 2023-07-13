@@ -5,6 +5,7 @@
 
 <div class="title">
     <label class="titlelabel"></label>
+    <label class="subtitlelabel"></label>
 </div>
 <style id="tmp_imgchange" type="text/css">
 
@@ -15,19 +16,27 @@
     }
 
     .titlelabel {
-        background: #FFFFFF;
-        border-radius: 5px;
-        padding: 10px;
+        padding: 4px;
         width: 97%;
     }
 
+    .subtitlelabel {
+        color: rgb(102, 102, 102);
+        padding: 0;
+    }
+
     .title {
-        left: 6%;
-       
         position: absolute;
-        width: 91%;
-        font-size: 1.3em;
-        top: 0.8em;
+        text-align: center;
+        margin: 1.2em;
+        margin-left: 1.8em;
+        margin-right: 1.8em;
+        font-size: 1em;
+        text-align: center;
+        background: #FFFFFF;
+        border-radius: 5px;
+        position: absolute;
+        z-index: 10;
     }
 
     #imgTemp, #chartTemperatura_div {
@@ -50,7 +59,7 @@
         -webkit-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
         -moz-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
         box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.5);
-        position: relative;
+        position: absolute;
         z-index: 9999;
     }
 
@@ -60,9 +69,10 @@
 
         .sensores h1 {
             font-size: 18px;
-            position: relative;
-            text-align: center;
-            top: 5px;
+            position: absolute;
+            /* text-align: center; */
+            top: -14px;
+            left: 10px;
             font-family: sans-serif;
         }
 
@@ -136,6 +146,7 @@
         imgTemp: "imgTemp",
         sSensores: "SensoresVarios",
         placa_: "",
+        lastDate: "",
 
         data: {
             BD: 0,
@@ -187,12 +198,14 @@
                     d["areas"][0]["img"] = "data:image/png;base64," + d["areas"][0]["img"];
                     _this.ubicarImg(d["areas"][0]["img"]);
                     $(".title > label").eq(0).text("Sensores de Temperatura (" + d["sensores"][0]["placa"] + ")");
+                    $(".title > label").eq(1).text(d["sensores"][0]["dategps"]);
                     //$(".title > label").eq(0).text("Sensores de Temperatura (" + d["areas"][0]["nombrearea"] + ")");
                     //_this.placa_ = d["areas"][0]["nombrearea"];
                     //_this.chart.placa_ = d["areas"][0]["nombrearea"];
                     _this.placa_ = d["sensores"][0]["placa"];
                     _this.chart.placa_ = d["sensores"][0]["placa"];
 
+                    _this.lastDate = d["sensores"][0]["dategps"];
                     _this.chart.lastDate = d["sensores"][0]["dategps"];
 
                     _this.chart.sensoresTemp = d["sensores"][0];
@@ -278,18 +291,24 @@
                 var imgW = obj.width();
                 var imgH = obj.height();
                 //console.log(imgW, imgH);
-
+                //var imgTop = $("#" + _this.imgTemp).offset().top;
+                // console.log(topsum);
                 for (var i = 0, len = idSensor.length; i < len; i++) {
                     var sensor = $("#" + idSensor[i]);
 
-                    var pixelsX = (x[i] * imgW) / 100;
+                    var pixelsX = ((x[i] * imgW) / 100) + 15;//15 es el largo del circulo de la letra del sensor
                     sensor.css({ "left": pixelsX + "px" });
-
-                    var pixelsY = ((y[i] * imgH) / 100);
+                    
+                    var pixelsY = ((y[i] * imgH) / 100) + topsum - 10; //10 es parte de los 15 de el alto del circulo de la letra del sensor
                     sensor.css({ "top": pixelsY + "px" });
+                    
                 }
 
                 $("#" + _this.imgTemp).css({ "top": topsum + "px", "position": "relative" });
+
+
+
+
                 // var topsum = parseInt(( / 2).toFixed(0));
 
                 // $("#" + _this.imgTemp).css({ "top": topsum + "px" });
@@ -331,12 +350,12 @@
                         useHtml: true,
                         align: "center"
                     },
-                    subtitle: {
+                   /* subtitle: {
                         text:  _this.lastDate,
                         style: {
                             fontSize: '1.4em'
                         },
-                    },
+                    },*/
                     xAxis: {
 
                         categories: cat,
