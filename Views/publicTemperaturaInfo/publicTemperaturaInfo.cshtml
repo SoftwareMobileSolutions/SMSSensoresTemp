@@ -16,7 +16,7 @@
     }
 
     .titlelabel {
-        padding: 4px;
+        margin-top: 0.2em;
         width: 97%;
     }
 
@@ -26,7 +26,7 @@
     }
 
     .title {
-        position: absolute;
+       /* position: relative;*/
         text-align: center;
         margin: 1.2em;
         margin-left: 1.8em;
@@ -193,7 +193,7 @@
             host_ === "localhost" ? (url = "../publicTemperaturaInfo/getConfiguracionAreaImg") : (url = "msensortemp/publicTemperaturaInfo/getConfiguracionAreaImg");
             var _this = this;
             $.get(url, _this.data, function (d) {
-                // console.log(d["areas"])
+                //console.log(d["areas"])
                 if (typeof d["areas"] !== "undefined") {
                     d["areas"][0]["img"] = "data:image/png;base64," + d["areas"][0]["img"];
                     _this.ubicarImg(d["areas"][0]["img"]);
